@@ -15,7 +15,6 @@ import datetime
 
 t = datetime.datetime.now()
 
-
 # FUNCTIONS
 
 def assure_path_exists(path):
@@ -36,7 +35,7 @@ def check_haarcascadefile():
     if exists:
         pass
     else:
-        mess._show(title='Some file missing', message='Please contact us for help')
+        mess._show(title='Some ', message='Please contact us for help')
         window.destroy()
 
 def save_pass():
@@ -120,6 +119,7 @@ def psw():
     password = tsd.askstring('Password', 'Enter Password', show='*')
     if (password == key):
         TrainImages()
+        add_data()
     elif (password == None):
         pass
     else:
@@ -155,8 +155,10 @@ def TakeImages():
             writer.writerow(columns)
             serial = 1
         csvFile1.close()
+    
     Id = txt.get()
     name = txt2.get()
+    
     if ((name.isalpha()) or (' ' in name)):
         cam = cv2.VideoCapture(0)
         harcascadePath = "haarcascade_frontalface_default.xml"
@@ -288,6 +290,7 @@ def TrackImages():
         #cv2.imshow('Taking Re', gray)
         
         if (cv2.waitKey(1) == ord('q')):
+            add_data()
             break
     ts = time.time()
     date = datetime.datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
@@ -310,7 +313,7 @@ def TrackImages():
             if (i > 1):
                 if (i % 2 != 0):
                     iidd = str(lines[0]) + '   '
-                    tv.insert('', 0, text=iidd, values=(str(lines[2]), str(lines[4]), str(lines[6])))
+                    #tv.insert('', 0, text=iidd, values=(str(lines[2]), str(lines[4]), str(lines[6])))
     csvFile1.close()
     cam.release()
     cv2.destroyAllWindows()
@@ -347,6 +350,7 @@ window.configure(background='#F8C471')
 frame1 = tk.Frame(window, bg="#00aeff")
 frame1.place(relx=0.11, rely=0.17, relwidth=0.39, relheight=0.80)
 
+
 frame2 = tk.Frame(window, bg="#00aeff")
 frame2.place(relx=0.51, rely=0.17, relwidth=0.38, relheight=0.80)
 
@@ -374,13 +378,14 @@ head1.place(x=0,y=0)
 
 lbl = tk.Label(frame2, text="Enter ID",width=20  ,height=1  ,fg="black"  ,bg="#00aeff" ,font=('times', 17, ' bold ') )
 lbl.place(x=80, y=55)
-
-txt = tk.Entry(frame2,width=32 ,fg="black",font=('times', 15, ' bold '))
+ 
+global txt 
+txt= tk.Entry(frame2,width=32 ,fg="black",font=('times', 15, ' bold '))
 txt.place(x=30, y=88)
 
 lbl2 = tk.Label(frame2, text="Enter Name",width=20  ,fg="black"  ,bg="#00aeff" ,font=('times', 17, ' bold '))
 lbl2.place(x=80, y=140)
-
+global txt2
 txt2 = tk.Entry(frame2,width=32 ,fg="black",font=('times', 15, ' bold ')  )
 txt2.place(x=30, y=173)
 
@@ -390,7 +395,7 @@ message1.place(x=7, y=230)
 message = tk.Label(frame2, text="" ,bg="#00aeff" ,fg="black"  ,width=39,height=1, activebackground = "yellow" ,font=('times', 16, ' bold '))
 message.place(x=7, y=450)
 
-lbl3 = tk.Label(frame1, text="Recognised",width=20  ,fg="black"  ,bg="#00aeff"  ,height=1 ,font=('times', 17, ' bold '))
+lbl3 = tk.Label(frame1, text="Student data",width=20  ,fg="black"  ,bg="#00aeff"  ,height=1 ,font=('times', 17, ' bold '))
 lbl3.place(x=100, y=115)
 
 res=0
@@ -414,16 +419,33 @@ filemenu.add_command(label='Exit',command = window.destroy)
 menubar.add_cascade(label='Help',font=('times', 29, ' bold '),menu=filemenu)
 
 # TREEVIEW Recognised TABLE 
-tv= ttk.Treeview(frame1,height =13,columns = ('name','date','time'))
-tv.column('#0',width=82)
-tv.column('name',width=130)
-tv.column('date',width=133)
-tv.column('time',width=133)
+tv= ttk.Treeview(frame1,height =13,columns = ('name'))
+
+tv["columns"]=("1","2")
+tv['show']='headings'
+tv.column("1",width=180,anchor='c')
+tv.column("2",width=280,anchor='c')
+#tv.column("3",width=113,anchor='c')
+#tv.column("4",width=113,anchor='c')
 tv.grid(row=2,column=0,padx=(0,0),pady=(150,0),columnspan=4)
-tv.heading('#0',text ='ID')
-tv.heading('name',text ='NAME')
-tv.heading('date',text ='DATE')
-tv.heading('time',text ='TIME')
+tv.heading("1",text="id")
+tv.heading("2",text="Name")
+#tv.heading("3",text="DATE")
+#tv.heading("4",text="TIME")
+i=0
+#tv.insert("",'end',
+                  # values=(i,'Alex',date,time))
+def add_data():
+     
+     my_id=txt.get() # read id
+     my_name=txt2.get() # read name
+     af = pd.read_csv("SuspectDetails\SuspectDetails.csv")
+     jk=0
+     for i in range(len(af)):
+       tv.insert("",'end',values=(af["ID"][jk],af["NAME"][jk]))
+       jk+=1
+     
+     
 
 # SCROLLBAR 
 scroll=ttk.Scrollbar(frame1,orient='vertical',command=tv.yview)
@@ -437,7 +459,7 @@ clearButton2 = tk.Button(frame2, text="Clear", command=clear2  ,fg="black"  ,bg=
 clearButton2.place(x=335, y=172)    
 takeImg = tk.Button(frame2, text="Take Images", command=TakeImages  ,fg="white"  ,bg="blue"  ,width=34  ,height=1, activebackground = "white" ,font=('times', 15, ' bold '))
 takeImg.place(x=30, y=300)
-trainImg = tk.Button(frame2, text="Save Criminal Data", command=psw ,fg="white"  ,bg="blue"  ,width=34  ,height=1, activebackground = "white" ,font=('times', 15, ' bold '))
+trainImg = tk.Button(frame2, text="save student Data", command=psw ,fg="white"  ,bg="blue"  ,width=34  ,height=1, activebackground = "white" ,font=('times', 15, ' bold '))
 trainImg.place(x=30, y=380)
 trackImg = tk.Button(frame1, text="Verify&Identify ", command=TrackImages  ,fg="black"  ,bg="yellow"  ,width=35  ,height=1, activebackground = "white" ,font=('times', 15, ' bold '))
 trackImg.place(x=30,y=50)
